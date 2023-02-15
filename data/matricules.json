@@ -1,0 +1,16 @@
+{
+    "matricules": [
+        {
+            "id": "s.triado",
+            "nif": "12312312A",
+            "cognom1": "Morales",
+            "cognom2": "Triadó",
+            "nom": "Sergi",
+            "data_naixament": "01-25-1993",
+            "curs": "DAW",
+            "preu": 400,
+            "pagat": true,
+            "foto_alumne": "img/s.triado.jpg"
+        }
+    ]
+}
