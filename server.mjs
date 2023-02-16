@@ -2,6 +2,7 @@ import { createServer } from 'http';
 import * as fs from 'fs';
 import * as qs from 'querystring';
 import { ifError } from 'assert';
+import { log } from 'console';
 
 function onRequest(request, response){
     // 'url' de la petició
@@ -72,7 +73,7 @@ function readMatricules(matricula){
         if (alumne != undefined) {
             return alumne;
         } else {
-            throw new Error("No s'ha trobat cap matrícula");
+            return false;
         }
     }
 }

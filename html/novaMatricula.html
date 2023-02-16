@@ -9,13 +9,14 @@
     <script src="https://kit.fontawesome.com/8d59256d7f.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script src="../js/matricules.js"></script>
+    <script src="../js/novaMatricula.js"></script>
     <title>Nova Matrícula</title>
 </head>
 <body>
-    <div class="container bg-light rounded-5" style="max-width: 30%;">
-        <h1>Modificar matrícula</h1>
+    <div class="container bg-light rounded-5 col-sm-8 col-lg-4">
+        <h1>Afegir nova matrícula</h1>
         <div class="form justify-content-center">
-            <form method="POST" action="" enctype="multipart/form-data">
+            <form method="POST" id="novaMatricula" action="" enctype="multipart/form-data">
 
                 <hr class="border-3 border-top border-dark">
                 
@@ -31,23 +32,51 @@
                     <input class="form-control" 
                                 id="formFileSm" type="file" name="upload_img" accept="image/png, image/jpeg, image/jpg, image/gif">
                 </div>
-                    
+
                 <hr class="border-3 border-top border-dark">
+
+                <!-- Id Matrícula -->
+                <label for="id" class="fw-bold">Id. Matrícula</label>
+                <input type="text" name="id" id="newId" class="form-control" value="" disabled>
             
-                <!-- Nom usuari -->
-                <label for="newUsername" class="fw-bold">Vols canviar el teu nom d'usuari?:</label>
-                <input type="text" name="newUsername" class="form-control" value="">
+                <!-- Nif -->
+                <label for="nif" class="fw-bold">Nif de l'alumne:</label>
+                <input type="text" name="nif" id="newNif" class="form-control">
 
-                <!-- Email -->
-                <label for="newMail" class="fw-bold">Vols canviar el teu email?:</label>
-                <input type="text" name="newMail" class="form-control" value="">
+                <!-- Cognoms i nom -->
+                <label for="cognom1" class="fw-bold">Primer cognom de l'alumne:</label>
+                <input type="text" name="cognom1" id="newCognom1" class="form-control" onblur="generarId()">
+                
+                <label for="cognom2" class="fw-bold">Segon cognom de l'alumne:</label>
+                <input type="text" name="cognom2" id="newCognom2" class="form-control">
+                
+                <label for="nom" class="fw-bold">Nom de l'alumne:</label>
+                <input type="text" name="nom" id="newNom" class="form-control" onblur="generarId()">
 
+                
+                <!-- Data Naixement -->
+                <label for="data_naixament" class="fw-bold">Data de naixement:</label>
+                <input type="date" name="data_naixament" id="newDataNaixament" class="form-control">
+                
+                <!-- Curs -->
+                <label for="curs" class="fw-bold">Curs al que es matricula:</label>
+                <input type="text" name="curs" id="newCurs" class="form-control">
+
+                <!-- Preu -->
+                <label for="preu" class="fw-bold">Preu de la matrícula:</label>
+                <input type="number" name="preu" id="newPreu" class="form-control">
+
+                <!-- Pagat -->
+                <label for="pagat" class="fw-bold">Ha pagat?</label>
+                <input type="checkbox" name="pagat" id="newPagat" class="form-control">
+                
+                <p class="text-danger" id="errorwarn"></div>
                 <hr class="border-3 border-top border-dark mb-4">
 
                 <!-- Submit -->
                 <div class="container d-inline-flex justify-content-between mb-4">
-                    <input type="submit" name="modificar" value="Modificar" class="btn btn-dark">
-                    <input type="submit" name="eliminar" value="Eliminar matrícula" class="btn btn-danger">
+                    <input type="button" name="modificar" value="Afegir" class="btn btn-dark" onclick="formManager()">
+                    <input type="button" name="retornar" value="Tornar" class="btn btn-danger" onclick="window.location.href = 'http:\/\/localhost:8080'">
                 </div>
             </form>
         </div>
