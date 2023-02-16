@@ -1,7 +1,7 @@
 import { createServer } from 'http';
-import { readFile, readFileSync } from 'fs';
+import * as fs from 'fs';
 import * as qs from 'querystring';
-import { send } from 'process';
+import { ifError } from 'assert';
 
 function onRequest(request, response){
     // 'url' de la petició
@@ -16,38 +16,64 @@ function onRequest(request, response){
                     case 'create':
                         break;
                     case 'read':
-                        matricules += readMatricules(post.matricula);
+                        try{    
+                            matricules = readMatricules(post.matricula);
+                            response.setHeader("Content-Type", "application/json");
+                            response.writeHead(200);
+                            response.end(JSON.stringify(matricules));
+                        } catch (e){
+                            console.log(e);
+                        }
                         break;
                     case 'update':
                         break;
                     case 'delete':
+                        let matricula = post.matricula;
+                        try{
+                            let a = deleteMatricula(matricula);
+                            response.setHeader("Content-Type", "text/plain");
+                            response.writeHead(200);
+                            console.log(a);
+                            response.end(a);
+                        } catch (error) {
+                            console.log(error);
+                            response.setHeader("Content-Type", "text/plain");
+                            response.writeHead(400);
+                            response.end(error.toString());
+                        }
                         break;
                     default:
                         break;
                 }
             });
             request.on('end', function (){
-                request.end(matricules);
             })
+        } else {
+
+            let filename = "." + url.pathname;
+            if (filename == "./") filename += "index.html";
+            fs.readFile(filename, function(err, dades) {
+                response.end(dades);
+            });
         }
-        let filename = "." + url.pathname;
-		if (filename == "./") filename += "index.html";
-        readFile(filename, function(err, dades) {
-			response.end(dades);
-        });
 }
 
+// Llegim les matricules i comprovem si les hem de retornar totes o només una
 function readMatricules(matricula){
-    let matricules = readFileSync('data/matricules.json');
-    let dades = JSON.parse(matricules);
-    if (matricula == 'all') {
+    let dades = readJSON();
+    if (matricula === 'all') {
         return dades.matricules;
     } else {
+        let alumne;
         dades.matricules.forEach(element => {
-           if (element.id === matricula) return element;
+           if (element.id === matricula) alumne = element;
         });
-        // Si la iteració acaba del tot sense retornar cap element, vol dir que la matrícula que es busca no existeix.
-        throw new Error("No s'ha trobat cap matrícula");
+        // Si alumne es undefined després de la iteració, vol dir que l'alumne no existeix.
+        if (alumne != undefined) {
+            return alumne;
+        } else {
+            throw new Error("No s'ha trobat cap matrícula");
+        }
     }
 }
 
@@ -55,8 +81,43 @@ function updateMatricula(){
 
 }
 
-function deleteMatricula(){
+// Eliminem una matrícula
+function deleteMatricula(id){
+    let dades = readJSON();
+    let msg;
+    dades.matricules.forEach(matricula => {
+        if (id === matricula.id) {
+            let index = dades.matricules.indexOf(matricula);
+            dades.matricules.splice(index, 1);
+            try {
+                writeJSON(dades);
+                msg = `S'ha eliminat l'alumne ${id} satisfactòriament.`
+            } catch (error) {
+                msg = `Hi ha hagut un error amb l'eliminació de l'alumne: ${error}`;
+            }
+        };
+    });
+    if (msg != undefined) {
+        return msg;
+    } else {
+        throw new Error("No s'ha trobat cap matrícula");
+    }
+}
 
+// Funció per sobreescriure el fitxer JSON quan toqui
+function writeJSON(dades){
+    fs.writeFile('data/matricules.json', JSON.stringify(dades), function (err) {
+        if (err) {
+            return console.log(err);
+        }
+    });
+}
+
+// Llegim el fitxer amb les matricules i les retornem
+function readJSON(){
+    let matricules = fs.readFileSync('data/matricules.json');
+    let dades = JSON.parse(matricules);
+    return dades;
 }
 
 const server = createServer();
