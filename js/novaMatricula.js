@@ -55,7 +55,9 @@ function checkMatricula(matricules, idTemp){
     
 // });
 
-function formManager(){
+function formManager(e){
+    e.preventDefault();
+
     var errors = 0;
     $("#novaMatricula :input").map(function(){
         if ($(this).attr('name') != $('#novaMatricula :input[name="upload_img"]').attr('name') 
@@ -79,12 +81,11 @@ function formManager(){
 }
 
 function enviarFormulari(){
-    const form = document.getElementById("novaMatricula");
+    const form = $("#novaMatricula").get(0);
     const fd = new FormData(form);
 
     const request = new XMLHttpRequest();
-    request.open("POST", "http://localhost:8080", true);
-    request.setRequestHeader("Content-Type", "multipart/form-data");
+    request.open("POST", "http://localhost:8080");
 
     try {
         request.send(fd);

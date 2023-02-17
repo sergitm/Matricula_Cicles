@@ -2,83 +2,111 @@ import { createServer } from 'http';
 import * as fs from 'fs';
 import * as qs from 'querystring';
 import IncomingForm from 'formidable';
+import { extname } from 'path';
 
-function onRequest(request, response){
+function onRequest(request, response) {
     // 'url' de la petició
-		const base = 'http://' + request.headers.host + '/';
-		const url = new URL(request.url, base);
+    const base = 'http://' + request.headers.host + '/';
+    const url = new URL(request.url, base);
 
+    const rhct = request.headers['content-type'];
+    if (rhct && rhct.includes("multipart/form-data")) {
+        const form = IncomingForm();
+        form.parse(request, function (err, fields, files) {
+            let matricula = {
+                id: fields.id,
+                nif: fields.nif,
+                cognom1: fields.cognom1,
+                cognom2: fields.cognom2,
+                nom: fields.nom,
+                data_naixament: fields.data_naixament,
+                curs: fields.curs,
+                preu: fields.preu,
+                pagat: (fields.pagat) ? true : false,
+                foto_alumne: ""   
+            }
+            if (files.upload_img) {
+                
+                const extensio = extname(files.upload_img.originalFilename).replace(/\./g, ''); 
+                const nom_foto = `${fields.id}.${extensio}`;
+                const temporal = files.upload_img.filepath;
+                const img_dir = 'img/' + nom_foto;
+                
+                fs.copyFileSync(temporal, img_dir);
+                fs.unlinkSync(temporal);
+
+                matricula.foto_alumne = img_dir;
+            }
+            let matricules_arr = readMatricules('all');
+            matricules_arr.push(matricula);
+            let fitxer_complet = {
+                matricules: matricules_arr
+            };
+            console.log(writeJSON(fitxer_complet));
+
+        });
+
+    } else {
         if (request.method == 'POST') {
             let matricules = '';
             request.on('data', function (data) {
-                const rhct = request.headers['content-type'];
-                if (rhct && rhct.includes("multipart/form-data")) {
-                    const form = IncomingForm();
-                    form.parse(request, function (err, fields, files){
-                        console.log(fields);
-                        console.log(files);
-                    });
-                    const dades = qs.parse(data);
-                    console.log(dades);
-                } else {
-
-                    let post = JSON.parse(data);
-                    switch (post.accio) {
-                        case 'create':
-                            break;
-                        case 'read':
-                            try {
-                                matricules = readMatricules(post.matricula);
-                                response.setHeader("Content-Type", "application/json");
-                                response.writeHead(200);
-                                response.end(JSON.stringify(matricules));
-                            } catch (e) {
-                                console.log(e);
-                            }
-                            break;
-                        case 'update':
-                            break;
-                        case 'delete':
-                            let matricula = post.matricula;
-                            try {
-                                let a = deleteMatricula(matricula);
-                                response.setHeader("Content-Type", "text/plain");
-                                response.writeHead(200);
-                                console.log(a);
-                                response.end(a);
-                            } catch (error) {
-                                console.log(error);
-                                response.setHeader("Content-Type", "text/plain");
-                                response.writeHead(400);
-                                response.end(error.toString());
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                let post = JSON.parse(data);
+                switch (post.accio) {
+                    case 'create':
+                        break;
+                    case 'read':
+                        try {
+                            matricules = readMatricules(post.matricula);
+                            response.setHeader("Content-Type", "application/json");
+                            response.writeHead(200);
+                            response.end(JSON.stringify(matricules));
+                        } catch (e) {
+                            console.log(e);
+                        }
+                        break;
+                    case 'update':
+                        break;
+                    case 'delete':
+                        let matricula = post.matricula;
+                        try {
+                            let a = deleteMatricula(matricula);
+                            response.setHeader("Content-Type", "text/plain");
+                            response.writeHead(200);
+                            console.log(a);
+                            response.end(a);
+                        } catch (error) {
+                            console.log(error);
+                            response.setHeader("Content-Type", "text/plain");
+                            response.writeHead(400);
+                            response.end(error.toString());
+                        }
+                        break;
+                    default:
+                        break;
                 }
             });
-            request.on('end', function (){
+            request.on('end', function () {
             });
         } else {
 
             let filename = "." + url.pathname;
             if (filename == "./") filename += "index.html";
-            fs.readFile(filename, function(err, dades) {
+            fs.readFile(filename, function (err, dades) {
                 response.end(dades);
             });
         }
+    }
 }
 
 // Llegim les matricules i comprovem si les hem de retornar totes o només una
-function readMatricules(matricula){
+function readMatricules(matricula) {
     let dades = readJSON();
     if (matricula === 'all') {
         return dades.matricules;
     } else {
         let alumne;
         dades.matricules.forEach(element => {
-           if (element.id === matricula) alumne = element;
+            if (element.id === matricula) alumne = element;
         });
         // Si alumne es undefined després de la iteració, vol dir que l'alumne no existeix.
         if (alumne != undefined) {
@@ -89,12 +117,12 @@ function readMatricules(matricula){
     }
 }
 
-function updateMatricula(){
+function updateMatricula() {
 
 }
 
 // Eliminem una matrícula
-function deleteMatricula(id){
+function deleteMatricula(id) {
     let dades = readJSON();
     let msg;
     dades.matricules.forEach(matricula => {
@@ -117,7 +145,7 @@ function deleteMatricula(id){
 }
 
 // Funció per sobreescriure el fitxer JSON quan toqui
-function writeJSON(dades){
+function writeJSON(dades) {
     fs.writeFile('data/matricules.json', JSON.stringify(dades), function (err) {
         if (err) {
             return console.log(err);
@@ -126,7 +154,7 @@ function writeJSON(dades){
 }
 
 // Llegim el fitxer amb les matricules i les retornem
-function readJSON(){
+function readJSON() {
     let matricules = fs.readFileSync('data/matricules.json');
     let dades = JSON.parse(matricules);
     return dades;
@@ -135,5 +163,5 @@ function readJSON(){
 const server = createServer();
 server.on('request', onRequest);
 
-server.listen(8080);	
+server.listen(8080);
 console.log("Servidor escoltant en http://localhost:8080");

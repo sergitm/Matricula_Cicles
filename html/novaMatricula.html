@@ -16,7 +16,7 @@
     <div class="container bg-light rounded-5 col-sm-8 col-lg-4">
         <h1>Afegir nova matrícula</h1>
         <div class="form justify-content-center">
-            <form method="POST" id="novaMatricula" enctype="multipart/form-data">
+            <form method="POST" id="novaMatricula" enctype="multipart/form-data" onsubmit="formManager(event)">
 
                 <hr class="border-3 border-top border-dark">
                 
@@ -37,7 +37,7 @@
 
                 <!-- Id Matrícula -->
                 <label for="id" class="fw-bold">Id. Matrícula</label>
-                <input type="text" name="id" id="newId" class="form-control" value="" disabled>
+                <input type="text" name="id" id="newId" class="form-control" value="" readonly>
             
                 <!-- Nif -->
                 <label for="nif" class="fw-bold">Nif de l'alumne:</label>
@@ -75,7 +75,7 @@
 
                 <!-- Submit -->
                 <div class="container d-inline-flex justify-content-between mb-4">
-                    <input type="button" name="modificar" value="Afegir" class="btn btn-dark" onclick="formManager()">
+                    <input type="submit" name="modificar" value="Afegir" class="btn btn-dark">
                     <input type="button" name="retornar" value="Tornar" class="btn btn-danger" onclick="window.location.href = 'http:\/\/localhost:8080'">
                 </div>
             </form>
