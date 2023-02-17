@@ -1,8 +1,7 @@
 import { createServer } from 'http';
 import * as fs from 'fs';
 import * as qs from 'querystring';
-import { ifError } from 'assert';
-import { log } from 'console';
+import IncomingForm from 'formidable';
 
 function onRequest(request, response){
     // 'url' de la petició
@@ -11,44 +10,56 @@ function onRequest(request, response){
 
         if (request.method == 'POST') {
             let matricules = '';
-            request.on('data', function (data){
-                let post = JSON.parse(data);
-                switch (post.accio) {
-                    case 'create':
-                        break;
-                    case 'read':
-                        try{    
-                            matricules = readMatricules(post.matricula);
-                            response.setHeader("Content-Type", "application/json");
-                            response.writeHead(200);
-                            response.end(JSON.stringify(matricules));
-                        } catch (e){
-                            console.log(e);
-                        }
-                        break;
-                    case 'update':
-                        break;
-                    case 'delete':
-                        let matricula = post.matricula;
-                        try{
-                            let a = deleteMatricula(matricula);
-                            response.setHeader("Content-Type", "text/plain");
-                            response.writeHead(200);
-                            console.log(a);
-                            response.end(a);
-                        } catch (error) {
-                            console.log(error);
-                            response.setHeader("Content-Type", "text/plain");
-                            response.writeHead(400);
-                            response.end(error.toString());
-                        }
-                        break;
-                    default:
-                        break;
+            request.on('data', function (data) {
+                const rhct = request.headers['content-type'];
+                if (rhct && rhct.includes("multipart/form-data")) {
+                    const form = IncomingForm();
+                    form.parse(request, function (err, fields, files){
+                        console.log(fields);
+                        console.log(files);
+                    });
+                    const dades = qs.parse(data);
+                    console.log(dades);
+                } else {
+
+                    let post = JSON.parse(data);
+                    switch (post.accio) {
+                        case 'create':
+                            break;
+                        case 'read':
+                            try {
+                                matricules = readMatricules(post.matricula);
+                                response.setHeader("Content-Type", "application/json");
+                                response.writeHead(200);
+                                response.end(JSON.stringify(matricules));
+                            } catch (e) {
+                                console.log(e);
+                            }
+                            break;
+                        case 'update':
+                            break;
+                        case 'delete':
+                            let matricula = post.matricula;
+                            try {
+                                let a = deleteMatricula(matricula);
+                                response.setHeader("Content-Type", "text/plain");
+                                response.writeHead(200);
+                                console.log(a);
+                                response.end(a);
+                            } catch (error) {
+                                console.log(error);
+                                response.setHeader("Content-Type", "text/plain");
+                                response.writeHead(400);
+                                response.end(error.toString());
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             });
             request.on('end', function (){
-            })
+            });
         } else {
 
             let filename = "." + url.pathname;

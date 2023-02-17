@@ -56,19 +56,49 @@ function checkMatricula(matricules, idTemp){
 // });
 
 function formManager(){
-    console.log('form enviat');
     var errors = 0;
     $("#novaMatricula :input").map(function(){
-         if( !$(this).val() ) {
-              $(this).addClass('is-invalid');
-              errors++;
-        } else if ($(this).val()) {
-              $(this).removeClass('is-invalid');
-              console.log($(this));
-        }   
+        if ($(this).attr('name') != $('#novaMatricula :input[name="upload_img"]').attr('name') 
+            && $(this).attr('name') != $('#novaMatricula :input[name="pagat"]').attr('name')
+            && $(this).attr('name') != $('#novaMatricula :input[name="cognom2"]').attr('name')
+            && $(this).attr('name') != $('#novaMatricula :input[name="id"]').attr('name')) {
+            
+                if( !$(this).val() ) {
+                     $(this).addClass('is-invalid');
+                     errors++;
+               } else if ($(this).val()) {
+                     $(this).removeClass('is-invalid');
+               }   
+        }
     });
     if(errors > 0){
         $('#errorwarn').text("Sisplau, emplena tots el camps.");
-        return false;
+    } else {
+        enviarFormulari();
     }
+}
+
+function enviarFormulari(){
+    const form = document.getElementById("novaMatricula");
+    const fd = new FormData(form);
+
+    const request = new XMLHttpRequest();
+    request.open("POST", "http://localhost:8080", true);
+    request.setRequestHeader("Content-Type", "multipart/form-data");
+
+    try {
+        request.send(fd);
+    } catch(error){
+        console.log(error);
+    }
+
+    request.onload = function() {
+        if (request.status != 200) {
+            alert(`Error ${request.status}: ${request.statusText}`);
+        } else {
+            let response = JSON.parse(request.responseText);
+            console.log(response);
+        }
+    }
+
 }
