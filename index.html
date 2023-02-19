@@ -1,23 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles/estils.css">
     <script src="https://kit.fontawesome.com/8d59256d7f.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script src="js/matricules.js"></script>
     <title>Matricules de Cicles</title>
 </head>
+
 <body onload="getMatricules()">
+
+    <!-- Switch Dades / Fotos -->
+    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn btn-dark active" id="lbl_matricules">
+            <input type="radio" name="options" id="btn_matricules" autocomplete="off" onclick="changeVista(event)" checked> Matrícules
+        </label>
+        <label class="btn btn-dark" id="lbl_fotos">
+            <input type="radio" name="options" id="btn_fotos" onclick="changeVista(event)" autocomplete="off"> Fotos
+        </label>
+    </div>
+
+    <!-- Matrícules -->
     <div id="matricules">
         <table id="taulaMatricules" class="table">
 
         </table>
     </div>
 
-    <button class="btn btn-dark" onclick="window.location.href = 'html/novaMatricula.html'">Fer una nova matrícula</button>
+    <!-- Fotos -->
+    <div id="fotos" class="container row row-cols-5">  
+    </div>
+
+    <!-- Nova Matrícula -->
+    <button class="btn btn-dark" onclick="window.location.href = 'html/novaMatricula.html'">Fer una nova
+        matrícula</button>
 </body>
+
 </html>

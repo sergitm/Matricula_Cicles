@@ -9,7 +9,7 @@
     <script src="https://kit.fontawesome.com/8d59256d7f.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script src="../js/matricules.js"></script>
-    <script src="../js/novaMatricula.js"></script>
+    <script src="../js/form_matricules.js"></script>
     <title>Nova Matrícula</title>
 </head>
 <body>
@@ -24,13 +24,13 @@
                 <label class="fw-bold">Foto de l'alumne:</label>
                 <div class="d-flex justify-content-center m-3">
                     <div class="ratio ratio-1x1" style="max-width: 40%; max-height:40%">
-                        <img src="../img/Blank-Avatar.jpg" class="img-fluid img-cover border border-3 bg-primary border-primary rounded-circle" />
+                        <img src="../img/Blank-Avatar.jpg" class="img-fluid img-cover border border-3 bg-primary border-primary rounded-circle" id="foto" />
                     </div>
                 </div>
                 <div class="my-3">
                     <label for="upload_img" class="fw-bold">Afegir imatge: </label>
                     <input class="form-control" 
-                                id="formFileSm" type="file" name="upload_img" accept="image/png, image/jpeg, image/jpg, image/gif">
+                                id="formFileSm" type="file" name="upload_img" accept="image/png, image/jpeg, image/jpg, image/gif" onchange="carregarImatge()">
                 </div>
 
                 <hr class="border-3 border-top border-dark">
@@ -75,8 +75,8 @@
 
                 <!-- Submit -->
                 <div class="container d-inline-flex justify-content-between mb-4">
-                    <input type="submit" name="modificar" value="Afegir" class="btn btn-dark">
-                    <input type="button" name="retornar" value="Tornar" class="btn btn-danger" onclick="window.location.href = 'http:\/\/localhost:8080'">
+                    <input type="submit" name="afegir" value="Afegir" class="btn btn-primary">
+                    <input type="button" name="retornar" value="Tornar" class="btn btn-dark" onclick="window.location.href = 'http:\/\/localhost:8080'">
                 </div>
             </form>
         </div>

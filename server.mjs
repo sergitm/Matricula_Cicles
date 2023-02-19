@@ -1,6 +1,5 @@
 import { createServer } from 'http';
 import * as fs from 'fs';
-import * as qs from 'querystring';
 import IncomingForm from 'formidable';
 import { extname } from 'path';
 
@@ -10,50 +9,96 @@ function onRequest(request, response) {
     const url = new URL(request.url, base);
 
     const rhct = request.headers['content-type'];
+
+    // Gestionem una petició que vingui d'un formulari
     if (rhct && rhct.includes("multipart/form-data")) {
         const form = IncomingForm();
         form.parse(request, function (err, fields, files) {
-            let matricula = {
-                id: fields.id,
-                nif: fields.nif,
-                cognom1: fields.cognom1,
-                cognom2: fields.cognom2,
-                nom: fields.nom,
-                data_naixament: fields.data_naixament,
-                curs: fields.curs,
-                preu: fields.preu,
-                pagat: (fields.pagat) ? true : false,
-                foto_alumne: ""   
+            let matricula;
+            let index;
+            let matricula_original;
+            // Si les dades venen d'un formulari de MODIFICAR tindrán un camp 
+            // amb la id original per comparar les dades originals amb les noves
+            if (fields.id_original != undefined) {
+                matricula_original = readMatricules(fields.id_original);
+                matricula = {
+                    id: fields.id ?? matricula_original.id,
+                    nif: fields.nif ?? matricula_original.nif,
+                    cognom1: fields.cognom1 ?? matricula_original.cognom1,
+                    cognom2: fields.cognom2 ?? matricula_original.cognom2,
+                    nom: fields.nom ?? matricula_original.nom,
+                    data_naixament: fields.data_naixament ?? matricula_original.data_naixament,
+                    curs: fields.curs ?? matricula_original.curs,
+                    preu: fields.preu ?? matricula_original.preu,
+                    pagat: (fields.pagat) ? true : false,
+                    foto_alumne: matricula_original.foto_alumne
+                };
+            // Si no tenen el camp amb la id original, es perque es una nova matrícula
+            } else {
+                matricula = {
+                    id: fields.id,
+                    nif: fields.nif,
+                    cognom1: fields.cognom1,
+                    cognom2: fields.cognom2,
+                    nom: fields.nom,
+                    data_naixament: fields.data_naixament,
+                    curs: fields.curs,
+                    preu: fields.preu,
+                    pagat: (fields.pagat) ? true : false,
+                    foto_alumne: ""
+                };
             }
-            if (files.upload_img) {
-                
-                const extensio = extname(files.upload_img.originalFilename).replace(/\./g, ''); 
+            // Si hi ha un fitxer canviem la propietat a la nova imatge
+            if (files.upload_img.originalFilename != '') {
+
+                const extensio = extname(files.upload_img.originalFilename).replace(/\./g, '');
                 const nom_foto = `${fields.id}.${extensio}`;
                 const temporal = files.upload_img.filepath;
                 const img_dir = 'img/' + nom_foto;
-                
+
                 fs.copyFileSync(temporal, img_dir);
                 fs.unlinkSync(temporal);
 
                 matricula.foto_alumne = img_dir;
             }
+
             let matricules_arr = readMatricules('all');
-            matricules_arr.push(matricula);
+            // finalment, si la intenció es modificar, busquem la matrícula i la modifiquem
+            if (fields.id_original != undefined) {
+                index = matricules_arr.findIndex(function(item){
+                    return item.id === matricula_original.id;
+                });
+                matricules_arr.splice(index, 1, matricula);
+            // Si no, simplement l'afegim
+            } else {
+                matricules_arr.push(matricula);
+            }
+
             let fitxer_complet = {
                 matricules: matricules_arr
             };
-            console.log(writeJSON(fitxer_complet));
 
+            // Escrivim el fitxer per guardar les dades
+            try {
+                writeJSON(fitxer_complet);
+                response.setHeader("Content-Type", "text/plain");
+                response.writeHead(200);
+                response.end("Operació completada satisfactòriament.");
+            } catch (error) {
+                response.setHeader("Content-Type", "text/plain");
+                response.writeHead(400);
+                response.end(error.toString());
+            }
         });
-
+    // Si les dades no venen d'un formulari, les gestionem d'un altre forma
     } else {
+        // Si la petició es post:
         if (request.method == 'POST') {
             let matricules = '';
             request.on('data', function (data) {
                 let post = JSON.parse(data);
+                // Comprovarem quina és la intenció de la petició
                 switch (post.accio) {
-                    case 'create':
-                        break;
                     case 'read':
                         try {
                             matricules = readMatricules(post.matricula);
@@ -64,15 +109,12 @@ function onRequest(request, response) {
                             console.log(e);
                         }
                         break;
-                    case 'update':
-                        break;
                     case 'delete':
                         let matricula = post.matricula;
                         try {
                             let a = deleteMatricula(matricula);
                             response.setHeader("Content-Type", "text/plain");
                             response.writeHead(200);
-                            console.log(a);
                             response.end(a);
                         } catch (error) {
                             console.log(error);
@@ -87,6 +129,7 @@ function onRequest(request, response) {
             });
             request.on('end', function () {
             });
+        // Si la petició no és POST, retornem el fitxer index.html
         } else {
 
             let filename = "." + url.pathname;
@@ -117,10 +160,6 @@ function readMatricules(matricula) {
     }
 }
 
-function updateMatricula() {
-
-}
-
 // Eliminem una matrícula
 function deleteMatricula(id) {
     let dades = readJSON();
@@ -148,7 +187,7 @@ function deleteMatricula(id) {
 function writeJSON(dades) {
     fs.writeFile('data/matricules.json', JSON.stringify(dades), function (err) {
         if (err) {
-            return console.log(err);
+            console.log(err);
         }
     });
 }
@@ -160,6 +199,8 @@ function readJSON() {
     return dades;
 }
 
+
+// Server data
 const server = createServer();
 server.on('request', onRequest);
 
